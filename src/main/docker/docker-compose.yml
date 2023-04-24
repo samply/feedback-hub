@@ -17,8 +17,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    #networks:
-    #  - teiler-ui
+    networks:
+      - negotiator
           
   db:
     image: 'postgres:13.1-alpine'
@@ -30,8 +30,8 @@ services:
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
-    #networks:
-    #  - teiler-ui
+    networks:
+      - negotiator
   #feedback-agent-ui:
   #  build:
   #    context: .
@@ -39,6 +39,6 @@ services:
   #  ports:
   #    - "8090:8090"
       
-#networks:
-#  teiler-ui:
-#    name: "teiler-ui"
+networks:
+  negotiator:
+    name: "negotiator"

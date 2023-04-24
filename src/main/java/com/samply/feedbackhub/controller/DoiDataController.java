@@ -1,6 +1,7 @@
 package com.samply.feedbackhub.controller;
 import com.macasaet.fernet.Key;
 import com.macasaet.fernet.Token;
+import com.samply.feedbackhub.BeamTask;
 import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
 import com.samply.feedbackhub.repository.DoiDataRepository;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.util.LinkedList;
 import java.util.List;
 
 @RestController
@@ -39,42 +41,27 @@ public class DoiDataController {
         };
         final Key key = Key.generateKey();
         doi_data.setSymEncKey(key.serialise());
+        DoiData returnData = doiDataRepository.save(doi_data);
 
-        DoiData returnData = doiDataRepository.save(doi_data); //shouldn't return key
+        BeamTask task = new BeamTask();
+        task.setFrom("app1.proxy1.broker");
 
-        JSONObject beamProxyTask = new JSONObject();
-
-        beamProxyTask.put("id", String.valueOf(doi_data.getId()));
-        beamProxyTask.put("from", "app1.proxy1.broker");
-        JSONArray toArray = new JSONArray();
-        //here add all proxies plausible for DOI addition
-        toArray.add("app1.proxy2.broker");
-        beamProxyTask.put("to", toArray);
-
-        JSONObject bodyObject = new JSONObject();
-        bodyObject.put("key", doi_data.getSymEncKey());
-        bodyObject.put("request_id", doi_data.getRequestID());
-        beamProxyTask.put("body", bodyObject);
-
-        JSONObject failureStrategyObject = new JSONObject();
-        JSONObject retryObject = new JSONObject();
-        retryObject.put("backoff_millisecs", 1000);
-        retryObject.put("max_tries", 5);
-        failureStrategyObject.put("retry", retryObject);
-        beamProxyTask.put("failure_strategy", failureStrategyObject);
-
-        beamProxyTask.put("ttl", "30s");
-        beamProxyTask.put("metadata", null);
-
-        // To print in JSON format.
-        System.out.print(beamProxyTask);
+        LinkedList<String> toList = new LinkedList<>();
+        toList.add("app1.proxy2.broker");
+        task.setTo(toList);
+        task.setBody(doi_data.getSymEncKey());
+        task.setBackoffMillisecs(1000);
+        task.setMaxTries(5);
+        task.setTtl("30s");
+        task.setMetadata(doi_data.getRequestID());
 
         final String uri = "http://localhost:8081/v1/tasks";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
 
-        HttpEntity<JSONObject> request = new HttpEntity<>(beamProxyTask, headers);
+        HttpEntity<JSONObject> request = new HttpEntity<>(task.buildJSON(), headers);
+        System.out.println(request);
         JSONObject result = restTemplate.postForObject(uri, request, JSONObject.class);
         System.out.println(result);
 
