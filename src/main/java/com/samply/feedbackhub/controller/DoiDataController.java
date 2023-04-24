@@ -5,9 +5,13 @@ import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
 import com.samply.feedbackhub.repository.DoiDataRepository;
 import com.samply.feedbackhub.exception.DoiDataNotFoundException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 
 @RestController
@@ -34,6 +38,39 @@ public class DoiDataController {
         doi_data.setSymEncKey(key.serialise());
 
         DoiData returnData = doiDataRepository.save(doi_data); //shouldn't return key
+
+        JSONObject beamProxyTask = new JSONObject();
+
+        beamProxyTask.put("id", String.valueOf(doi_data.getId()));
+        beamProxyTask.put("from", "app1.proxy1.broker");
+        JSONArray toArray = new JSONArray();
+        //here add all proxies plausible for DOI addition
+        toArray.add("app1.proxy2.broker");
+        beamProxyTask.put("to", toArray);
+
+        JSONObject bodyObject = new JSONObject();
+        bodyObject.put("key", doi_data.getSymEncKey());
+        bodyObject.put("request_id", doi_data.getRequestID());
+        beamProxyTask.put("body", bodyObject);
+
+        JSONObject failureStrategyObject = new JSONObject();
+        JSONObject retryObject = new JSONObject();
+        retryObject.put("backoff_millisecs", 1000);
+        retryObject.put("max_tries", 5);
+        failureStrategyObject.put("retry", retryObject);
+        beamProxyTask.put("failure_strategy", failureStrategyObject);
+
+        beamProxyTask.put("ttl", "30s");
+        beamProxyTask.put("metadata", null);
+
+        // To print in JSON format.
+        System.out.print(beamProxyTask);
+
+        final String uri = "http://localhost:8081";
+        RestTemplate restTemplate = new RestTemplate();
+        JSONObject result = restTemplate.postForObject(uri, beamProxyTask, JSONObject.class);
+        System.out.println(result);
+
         returnData.setSymEncKey("hidden");
         return returnData;
     }
