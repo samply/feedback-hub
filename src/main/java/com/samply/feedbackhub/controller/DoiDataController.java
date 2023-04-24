@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.http.HttpHeaders;
+import java.net.http.HttpEntity;
 import java.util.List;
 
 @RestController
@@ -66,9 +68,13 @@ public class DoiDataController {
         // To print in JSON format.
         System.out.print(beamProxyTask);
 
-        final String uri = "http://localhost:8081";
+        final String uri = "http://localhost:8081/v1/tasks";
         RestTemplate restTemplate = new RestTemplate();
-        JSONObject result = restTemplate.postForObject(uri, beamProxyTask, JSONObject.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
+
+        HttpEntity<JSONObject> request = new HttpEntity<>(beamProxyTask, headers);
+        JSONObject result = restTemplate.postForObject(uri, request, JSONObject.class);
         System.out.println(result);
 
         returnData.setSymEncKey("hidden");
