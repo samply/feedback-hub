@@ -1,0 +1,6 @@
+com\samply\feedbackhub\FeedbackHubApplication.class
+com\samply\feedbackhub\controller\DoiDataController.class
+com\samply\feedbackhub\repository\DoiDataRepository.class
+com\samply\feedbackhub\model\DoiData.class
+com\samply\feedbackhub\exception\DoiDataAlreadyPresentException.class
+com\samply\feedbackhub\exception\DoiDataNotFoundException.class
