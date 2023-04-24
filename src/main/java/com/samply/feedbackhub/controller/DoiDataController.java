@@ -6,7 +6,6 @@ import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
 import com.samply.feedbackhub.repository.DoiDataRepository;
 import com.samply.feedbackhub.exception.DoiDataNotFoundException;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -38,7 +37,7 @@ public class DoiDataController {
     public DoiData createDoiData(@Valid @RequestBody DoiData doi_data) throws DoiDataAlreadyPresentException {
         if (doiDataRepository.findByRequest(doi_data.getRequestID()).size() > 0) {
             throw new DoiDataAlreadyPresentException(doi_data.getRequestID());
-        };
+        }
         final Key key = Key.generateKey();
         doi_data.setSymEncKey(key.serialise());
         DoiData returnData = doiDataRepository.save(doi_data);
