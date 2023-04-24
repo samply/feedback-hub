@@ -8,12 +8,13 @@ import com.samply.feedbackhub.exception.DoiDataNotFoundException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.http.HttpHeaders;
-import java.net.http.HttpEntity;
+
 import java.util.List;
 
 @RestController
