@@ -46,7 +46,7 @@ class FeedbackHubApplicationTests {
 		task.setTtl("30s");
 		task.setMetadata("request123");
 
-		final String uri = "http://dev_proxy1_1:8081/v1/tasks";
+		final String uri = "http://localhost:8081/v1/tasks";
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
