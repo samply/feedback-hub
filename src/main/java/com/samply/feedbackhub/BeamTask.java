@@ -39,9 +39,7 @@ public class BeamTask {
         beamProxyTask.put("from", this.from);
 
         JSONArray toArray = new JSONArray();
-        for (String to : this.to) {
-            toArray.add(to);
-        }
+        toArray.addAll(this.to);
         beamProxyTask.put("to", toArray);
         beamProxyTask.put("body", this.body);
 
