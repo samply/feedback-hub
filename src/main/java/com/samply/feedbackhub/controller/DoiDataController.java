@@ -46,7 +46,6 @@ public class DoiDataController {
 
         // Create and send the BeamTask to the proxy server
         BeamTask task = createBeamTask(dataWithDoi);
-
         sendBeamTask(task);
 
         // Hide the encryption key before returning as it is sensitive data
@@ -64,8 +63,8 @@ public class DoiDataController {
         task.setTo(toList);
 
         JSONObject bodyJson = new JSONObject();
-        bodyJson.put("doi", dataWithDoi.getSymEncKey());
-        bodyJson.put("requestId", dataWithDoi.getRequestID());
+        bodyJson.put("doi", (Object) dataWithDoi.getSymEncKey());
+        bodyJson.put("requestId", (Object) dataWithDoi.getRequestID());
         task.setBody(bodyJson.toString());
 
         task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
