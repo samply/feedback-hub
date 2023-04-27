@@ -63,8 +63,8 @@ public class DoiDataController {
         task.setTo(toList);
 
         JSONObject bodyJson = new JSONObject();
-        bodyJson.put("doi", (Object) dataWithDoi.getSymEncKey());
-        bodyJson.put("requestId", (Object) dataWithDoi.getRequestID());
+        bodyJson.put("doi", dataWithDoi.getSymEncKey());
+        bodyJson.put("requestId", dataWithDoi.getRequestID());
         task.setBody(bodyJson.toString());
 
         task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
