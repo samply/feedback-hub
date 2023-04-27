@@ -17,6 +17,10 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - BEAM_PROXY_URI=http://dev_proxy1_1:8081
+      - PROXY_TASK_BACKOFF_MS=1000
+      - PROXY_TASK_MAX_TRIES=5
+      - PROXY_TASK_TTL=30s
     networks:
       - negotiator
           

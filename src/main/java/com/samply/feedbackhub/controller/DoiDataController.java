@@ -68,22 +68,23 @@ public class DoiDataController {
         bodyJson.put("requestId", dataWithDoi.getRequestID());
         task.setBody(bodyJson.toString());
 
-        task.setBackoffMillisecs(1000);
-        task.setMaxTries(5);
-        task.setTtl("30s");
+        task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
+        task.setMaxTries(Integer.parseInt(System.getenv("PROXY_TASK_MAX_TRIES")));
+        task.setTtl(System.getenv("PROXY_TASK_TTL"));
         task.setMetadata(null);
         return task;
     }
 
     private JSONObject sendBeamTask(BeamTask task) {
-        final String uri = "http://dev_proxy1_1:8081/v1/tasks";
+        String proxy_uri = System.getenv("BEAM_PROXY_URI");
+        final String request_uri = proxy_uri + "/v1/tasks";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
         HttpEntity<JSONObject> request = new HttpEntity<>(task.buildJSON(), headers);
 
-        return restTemplate.postForObject(uri, request, JSONObject.class);
+        return restTemplate.postForObject(request_uri, request, JSONObject.class);
     }
 
     // Get a Single DoiData
