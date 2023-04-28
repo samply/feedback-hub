@@ -4,6 +4,7 @@ import com.macasaet.fernet.Token;
 import com.samply.feedbackhub.BeamTask;
 import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
+import com.samply.feedbackhub.model.DoiDataDto;
 import com.samply.feedbackhub.repository.DoiDataRepository;
 import com.samply.feedbackhub.exception.DoiDataNotFoundException;
 import org.json.simple.JSONObject;
@@ -34,24 +35,24 @@ public class DoiDataController {
     // Create a new DoiData
     @CrossOrigin(origins = "http://localhost:9000")
     @PostMapping("/doi-data")
-    public DoiData createDoiData(@Valid @RequestBody DoiData dataWithDoi) throws DoiDataAlreadyPresentException {
+    public DoiData createDoiData(@Valid @RequestBody DoiDataDto doiDataDto) throws DoiDataAlreadyPresentException {
         // Check if the DoiData is already present in the repository
-        if (doiDataRepository.findByRequest(dataWithDoi.getRequestID()).size() > 0) {
-            throw new DoiDataAlreadyPresentException(dataWithDoi.getRequestID());
+        if (doiDataRepository.findByRequest(doiDataDto.getRequestID()).size() > 0) {
+            throw new DoiDataAlreadyPresentException(doiDataDto.getRequestID());
         }
 
         // Generate the symmetric encryption key
         final Key key = Key.generateKey();
-        dataWithDoi.setSymEncKey(key.serialise());
+
+        // Create data entity and add it to local database
+        DoiData doiData = new DoiData(doiDataDto.getRequestID(), doiDataDto.getPublicationReference(), key.serialise());
+        doiDataRepository.save(doiData);
 
         // Create and send the BeamTask to the proxy server
-        BeamTask task = createBeamTask(dataWithDoi);
+        BeamTask task = createBeamTask(doiData);
         sendBeamTask(task);
 
-        // Hide the encryption key before returning as it is sensitive data
-        doiDataRepository.save(dataWithDoi);
-        dataWithDoi.setSymEncKey("hidden");
-        return dataWithDoi;
+        return doiData;
     }
 
     private BeamTask createBeamTask(DoiData dataWithDoi) {
@@ -63,8 +64,9 @@ public class DoiDataController {
         task.setTo(toList);
 
         JSONObject bodyJson = new JSONObject();
-        bodyJson.put("doi", dataWithDoi.getSymEncKey());
+        bodyJson.put("key", dataWithDoi.getSymEncKey());
         bodyJson.put("requestId", dataWithDoi.getRequestID());
+        bodyJson.put("dataToken", dataWithDoi.getPublicationReferenceToken());
         task.setBody(bodyJson.toString());
 
         task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
@@ -105,6 +107,6 @@ public class DoiDataController {
     public String getDoiTokenByRequestID(@PathVariable(value = "req_id") String requestId) throws DoiDataNotFoundException {
         List<DoiData> data = doiDataRepository.findByRequest(requestId);
         if (data.size() == 0) throw new DoiDataNotFoundException(requestId);
-        return Token.generate(new Key(data.get(0).getSymEncKey()), data.get(0).getPublicationReference()).serialise();
+        return data.get(0).getPublicationReferenceToken();
     }
 }

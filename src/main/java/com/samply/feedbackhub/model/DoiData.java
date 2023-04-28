@@ -1,5 +1,8 @@
 package com.samply.feedbackhub.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.macasaet.fernet.Key;
+import com.macasaet.fernet.Token;
 import jakarta.persistence.*;
 @Entity
 @Table(name = "doi_data")
@@ -11,28 +14,26 @@ public class DoiData {
     @Column(name = "request_id")
     private String requestID;
 
-    @Column(name = "publication_reference")
-    private String publicationReference;
+    @JsonIgnore
+    @Column(name = "publication_reference_token")
+    private String publicationReferenceToken;
 
+    @JsonIgnore
     @Column(name = "sym_enc_key")
     private String symEncKey;
     public DoiData() {
         super();
     }
 
-    public DoiData(long id, String requestID, String publicationReference, String symEncKey) {
-        this.id = id;
+    public DoiData(String requestID, String publicationReference, String symEncKey) {
         this.requestID = requestID;
-        this.publicationReference = publicationReference;
         this.symEncKey = symEncKey;
+        this.publicationReferenceToken = Token.generate(new Key(symEncKey), publicationReference).serialise();
+        //this.setPublicationReferenceToken(symEncKey, publicationReference);
     }
 
     public long getId() {
         return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getRequestID() {
@@ -43,12 +44,15 @@ public class DoiData {
         this.requestID = requestID;
     }
 
-    public String getPublicationReference() {
-        return publicationReference;
+    public void setPublicationReferenceToken(String publicationReference, String symEncKey) {
+        this.publicationReferenceToken = Token.generate(new Key(symEncKey), publicationReference).serialise();
+    }
+    public void setPublicationReferenceToken(String publicationReferenceToken) {
+        this.publicationReferenceToken = publicationReferenceToken;
     }
 
-    public void setPublicationReference(String publicationReference) {
-        this.publicationReference = publicationReference;
+    public String getPublicationReferenceToken() {
+        return this.publicationReferenceToken;
     }
 
     public String getSymEncKey() {
