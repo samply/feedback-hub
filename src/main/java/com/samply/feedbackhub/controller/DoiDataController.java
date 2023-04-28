@@ -1,6 +1,5 @@
 package com.samply.feedbackhub.controller;
 import com.macasaet.fernet.Key;
-import com.macasaet.fernet.Token;
 import com.samply.feedbackhub.BeamTask;
 import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
