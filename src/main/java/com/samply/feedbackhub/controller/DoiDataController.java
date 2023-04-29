@@ -76,8 +76,7 @@ public class DoiDataController {
     }
 
     private JSONObject sendBeamTask(BeamTask task) {
-        String proxy_uri = System.getenv("BEAM_PROXY_URI");
-        final String request_uri = proxy_uri + "/v1/tasks";
+        final String request_uri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();

@@ -1,6 +1,7 @@
 com/samply/feedbackhub/BeamTask.class
 com/samply/feedbackhub/FeedbackHubApplication.class
 com/samply/feedbackhub/exception/DoiDataNotFoundException.class
+com/samply/feedbackhub/model/DoiDataDto.class
 com/samply/feedbackhub/controller/DoiDataController.class
 com/samply/feedbackhub/exception/DoiDataAlreadyPresentException.class
 com/samply/feedbackhub/repository/DoiDataRepository.class
