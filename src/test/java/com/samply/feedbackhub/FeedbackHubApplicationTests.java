@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,7 +38,7 @@ class FeedbackHubApplicationTests {
 	void encryptDoiDataReference() {
 		String doi = "sample.doi.com";
 		final Key key = Key.generateKey();
-		DoiData doiData = new DoiData("req1", doi, key.serialise());
+		DoiData doiData = new DoiData("req1", doi, key.serialise(), UUID.randomUUID().toString());
 
 		final Validator<String> validator = new StringValidator() {
 		};

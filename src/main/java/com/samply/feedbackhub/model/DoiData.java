@@ -21,14 +21,19 @@ public class DoiData {
     @JsonIgnore
     @Column(name = "sym_enc_key")
     private String symEncKey;
+
+    @JsonIgnore
+    @Column(name = "access_code")
+    private String accessCode;
     public DoiData() {
         super();
     }
 
-    public DoiData(String requestID, String publicationReference, String symEncKey) {
+    public DoiData(String requestID, String publicationReference, String symEncKey, String accessCode) {
         this.requestID = requestID;
         this.symEncKey = symEncKey;
         this.publicationReferenceToken = Token.generate(new Key(symEncKey), publicationReference).serialise();
+        this.accessCode = accessCode;
         //this.setPublicationReferenceToken(symEncKey, publicationReference);
     }
 
@@ -61,5 +66,13 @@ public class DoiData {
 
     public void setSymEncKey(String encryptionToken) {
         this.symEncKey = encryptionToken;
+    }
+
+    public String getAccessCode() {
+        return accessCode;
+    }
+
+    public void setAccessCode(String accessCode) {
+        this.accessCode = accessCode;
     }
 }

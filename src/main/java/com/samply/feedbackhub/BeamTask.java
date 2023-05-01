@@ -18,9 +18,7 @@ public class BeamTask {
     int maxTries;
     String ttl;
     String metadata;
-    public BeamTask() {
-        this.id = UUID.randomUUID();
-    }
+    public BeamTask() {}
 
     public BeamTask(UUID id, String from, List<String> to, String body, int backoffMillisecs, int maxTries, String ttl, String metadata) {
         this.id = id;

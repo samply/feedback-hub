@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class DoiDataController {
@@ -34,7 +37,7 @@ public class DoiDataController {
     // Create a new DoiData
     @CrossOrigin(origins = "http://localhost:9000")
     @PostMapping("/doi-data")
-    public DoiData createDoiData(@Valid @RequestBody DoiDataDto doiDataDto) throws DoiDataAlreadyPresentException {
+    public ResponseEntity<?> createDoiData(@Valid @RequestBody DoiDataDto doiDataDto) throws DoiDataAlreadyPresentException {
         // Check if the DoiData is already present in the repository
         if (doiDataRepository.findByRequest(doiDataDto.getRequestID()).size() > 0) {
             throw new DoiDataAlreadyPresentException(doiDataDto.getRequestID());
@@ -44,18 +47,23 @@ public class DoiDataController {
         final Key key = Key.generateKey();
 
         // Create data entity and add it to local database
-        DoiData doiData = new DoiData(doiDataDto.getRequestID(), doiDataDto.getPublicationReference(), key.serialise());
-        doiDataRepository.save(doiData);
+        DoiData doiData = new DoiData(doiDataDto.getRequestID(), doiDataDto.getPublicationReference(), key.serialise(), UUID.randomUUID().toString());
 
         // Create and send the BeamTask to the proxy server
         BeamTask task = createBeamTask(doiData);
-        sendBeamTask(task);
+        ResponseEntity<JSONObject> responseEntity = sendBeamTask(task);
 
-        return doiData;
+        if (responseEntity.getStatusCodeValue() == 201) {
+            doiDataRepository.save(doiData);
+            return new ResponseEntity<>(doiData, HttpStatus.OK);
+        } else {
+            return responseEntity;
+        }
     }
 
     private BeamTask createBeamTask(DoiData dataWithDoi) {
         BeamTask task = new BeamTask();
+        task.setId(UUID.fromString(dataWithDoi.getAccessCode()));
         task.setFrom("app1.proxy1.broker");
 
         LinkedList<String> toList = new LinkedList<>();
@@ -65,7 +73,7 @@ public class DoiDataController {
         JSONObject bodyJson = new JSONObject();
         bodyJson.put("key", dataWithDoi.getSymEncKey());
         bodyJson.put("requestId", dataWithDoi.getRequestID());
-        bodyJson.put("dataToken", dataWithDoi.getPublicationReferenceToken());
+        bodyJson.put("accessCode", dataWithDoi.getAccessCode());
         task.setBody(bodyJson.toString());
 
         task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
@@ -75,7 +83,7 @@ public class DoiDataController {
         return task;
     }
 
-    private JSONObject sendBeamTask(BeamTask task) {
+    private ResponseEntity<JSONObject> sendBeamTask(BeamTask task) {
         final String request_uri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -83,7 +91,7 @@ public class DoiDataController {
         headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
         HttpEntity<JSONObject> request = new HttpEntity<>(task.buildJSON(), headers);
 
-        return restTemplate.postForObject(request_uri, request, JSONObject.class);
+        return restTemplate.postForEntity(request_uri, request, JSONObject.class);
     }
 
     // Get a Single DoiData
