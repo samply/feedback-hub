@@ -7,9 +7,9 @@ services:
       context: .
     container_name: feedback-hub-be
     expose:
-      - 8080
+      - 8071
     ports:
-      - 8071:8080
+      - 8071:8071
     depends_on:
       - feedback-hub-db
     environment:
@@ -23,6 +23,7 @@ services:
       - PROXY_TASK_TTL=30s
     networks:
       - negotiator
+      - outer
           
   feedback-hub-db:
     image: 'postgres:13.1-alpine'
@@ -46,3 +47,5 @@ services:
 networks:
   negotiator:
     name: "negotiator"
+  outer:
+    name: "outer"

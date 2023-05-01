@@ -115,4 +115,11 @@ public class DoiDataController {
         if (data.size() == 0) throw new DoiDataNotFoundException(requestId);
         return data.get(0).getPublicationReferenceToken();
     }
+    // Get Doi by request ID
+    @GetMapping("/reference-token/{access_code}")
+    public String getDoiTokenByAccessCode(@PathVariable(value = "access_code") String accessCode) throws DoiDataNotFoundException {
+        List<DoiData> data = doiDataRepository.findByAccessCode(accessCode);
+        if (data.size() == 0) throw new DoiDataNotFoundException(accessCode);
+        return data.get(0).getPublicationReferenceToken();
+    }
 }

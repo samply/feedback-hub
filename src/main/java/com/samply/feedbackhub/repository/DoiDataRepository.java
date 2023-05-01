@@ -11,4 +11,7 @@ import java.util.List;
 public interface DoiDataRepository extends JpaRepository<DoiData, Long> {
     @Query(nativeQuery= true, value="SELECT * FROM doi_data WHERE request_id = ?")
     List<DoiData> findByRequest(String id);
+
+    @Query(nativeQuery= true, value="SELECT * FROM doi_data WHERE access_code = ?")
+    List<DoiData> findByAccessCode(String id);
 }
