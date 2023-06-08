@@ -62,7 +62,7 @@ public class DoiDataController {
         BeamTask task = createBeamTask(doiData);
         ResponseEntity<JSONObject> responseEntity = sendBeamTask(task);
 
-        if (responseEntity.getStatusCodeValue() == 201) {
+        if (responseEntity.getStatusCode().value() == 201) {
             // Add data entity to local database
             DoiData savedDoiData = doiDataRepository.save(doiData);
             long doiDataID = savedDoiData.getId();
