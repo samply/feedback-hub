@@ -16,14 +16,14 @@ public class ProxyResultPoller extends Thread {
 
     @Override
     public void run() {
-        final String request_uri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks/" + taskUUID + "/results?wait_count=" + waitCount;
+        final String requestUri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks/" + taskUUID + "/results?wait_count=" + waitCount;
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
         HttpEntity<String> request = new HttpEntity<>(null, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(request_uri, HttpMethod.GET, request, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(requestUri, HttpMethod.GET, request, String.class);
 
         System.out.println(response);
 
