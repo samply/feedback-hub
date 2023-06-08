@@ -14,6 +14,7 @@ public class ProxyResultPoller extends Thread {
         this.resultListener = resultListener;
     }
 
+    @Override
     public void run() {
         final String request_uri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks/" + taskUUID + "/results?wait_count=" + waitCount;
         RestTemplate restTemplate = new RestTemplate();
