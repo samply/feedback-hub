@@ -60,13 +60,12 @@ public class DoiDataController {
 
         // Create and send the BeamTask to the proxy server
         BeamTask task = createBeamTask(doiData);
+        // Add data entity to local database
+        DoiData savedDoiData = doiDataRepository.save(doiData);
+        long doiDataID = savedDoiData.getId();
         ResponseEntity<JSONObject> responseEntity = sendBeamTask(task);
 
         if (responseEntity.getStatusCode().value() == 201) {
-            // Add data entity to local database
-            DoiData savedDoiData = doiDataRepository.save(doiData);
-            long doiDataID = savedDoiData.getId();
-
             CompletableFuture<Integer> resultFuture = new CompletableFuture<>();
             ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), status -> resultFuture.complete(status.value()));
             poller.start();
@@ -83,6 +82,7 @@ public class DoiDataController {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
+            doiDataService.deleteDoiDataById(doiDataID);
             return responseEntity;
         }
     }
