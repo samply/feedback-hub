@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -67,12 +68,7 @@ public class DoiDataController {
             long doiDataID = savedDoiData.getId();
 
             CompletableFuture<Integer> resultFuture = new CompletableFuture<>();
-            ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), new ProxyResultListener() {
-                @Override
-                public void onResult(HttpStatus status) {
-                    resultFuture.complete(status.value());
-                }
-            });
+            ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), status -> resultFuture.complete(status.value()));
             poller.start();
             try {
                 Integer statusCode = resultFuture.get(); // Block and wait for the result
@@ -103,10 +99,7 @@ public class DoiDataController {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String[] arrayValues = objectMapper.readValue(agentBeamIds, String[].class);
-
-            for (String value : arrayValues) {
-                toList.add(value);
-            }
+            Collections.addAll(toList, arrayValues);
         } catch (Exception e) {
             e.printStackTrace();
         }
