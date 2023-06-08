@@ -119,14 +119,16 @@ public class DoiDataController {
     }
 
     private ResponseEntity<JSONObject> sendBeamTask(BeamTask task) {
-        final String request_uri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks";
-        RestTemplate restTemplate = new RestTemplate();
+        final String requestUri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks";
+        String beamId = System.getenv("FEEDBACK_HUB_BEAM_ID");
+        String authorizationHeader = "ApiKey " + beamId + " App1Secret";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "ApiKey " + System.getenv("FEEDBACK_HUB_BEAM_ID") + " App1Secret");
+        headers.set("Authorization", authorizationHeader);
         HttpEntity<JSONObject> request = new HttpEntity<>(task.buildJSON(), headers);
 
-        return restTemplate.postForEntity(request_uri, request, JSONObject.class);
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.postForEntity(requestUri, request, JSONObject.class);
     }
     // Get Doi by request ID
     @GetMapping("/doi-token/{req_id}")
