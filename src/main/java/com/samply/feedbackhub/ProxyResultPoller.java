@@ -2,12 +2,14 @@ package com.samply.feedbackhub;
 
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
+
 import java.util.UUID;
 
 public class ProxyResultPoller extends Thread {
     private final UUID taskUUID;
     private final int waitCount;
     private final ProxyResultListener resultListener;
+
     public ProxyResultPoller(UUID taskUUID, int waitCount, ProxyResultListener resultListener) {
         this.taskUUID = taskUUID;
         this.waitCount = waitCount;
@@ -25,8 +27,6 @@ public class ProxyResultPoller extends Thread {
 
         ResponseEntity<String> response = restTemplate.exchange(requestUri, HttpMethod.GET, request, String.class);
 
-        System.out.println(response);
-
         if (response.getStatusCode() == HttpStatus.OK) {
             resultListener.onResult(HttpStatus.OK);
         } else {
@@ -34,4 +34,3 @@ public class ProxyResultPoller extends Thread {
         }
     }
 }
-
