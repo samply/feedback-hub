@@ -1,8 +1,15 @@
+com/samply/feedbackhub/service/DoiDataService.class
 com/samply/feedbackhub/BeamTask.class
+com/samply/feedbackhub/controller/DoiDataController.class
+com/samply/feedbackhub/repository/DoiDataRepository.class
+com/samply/feedbackhub/ProxyResultPoller.class
+com/samply/feedbackhub/service/DoiFeedbackMappingService.class
+com/samply/feedbackhub/controller/DoiDataController$1.class
 com/samply/feedbackhub/FeedbackHubApplication.class
 com/samply/feedbackhub/exception/DoiDataNotFoundException.class
 com/samply/feedbackhub/model/DoiDataDto.class
-com/samply/feedbackhub/controller/DoiDataController.class
 com/samply/feedbackhub/exception/DoiDataAlreadyPresentException.class
-com/samply/feedbackhub/repository/DoiDataRepository.class
 com/samply/feedbackhub/model/DoiData.class
+com/samply/feedbackhub/ProxyResultListener.class
+com/samply/feedbackhub/repository/DoiFeedbackMappingRepository.class
+com/samply/feedbackhub/model/DoiFeedbackMapping.class
