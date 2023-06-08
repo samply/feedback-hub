@@ -23,7 +23,7 @@ public class ProxyResultPoller extends Thread {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "ApiKey app1.proxy1.broker App1Secret");
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        HttpEntity<?> request = new HttpEntity<>(headers);
 
         ResponseEntity<String> response = restTemplate.exchange(requestUri, HttpMethod.GET, request, String.class);
 
