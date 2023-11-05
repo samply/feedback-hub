@@ -2,7 +2,7 @@ package com.samply.feedbackhub.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.macasaet.fernet.Key;
 import com.samply.feedbackhub.BeamTask;
-import com.samply.feedbackhub.ProxyResultListener;
+import com.samply.feedbackhub.BeamTaskHelper;
 import com.samply.feedbackhub.ProxyResultPoller;
 import com.samply.feedbackhub.exception.DoiDataAlreadyPresentException;
 import com.samply.feedbackhub.model.DoiData;
@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 public class DoiDataController {
     @Autowired
     DoiDataRepository doiDataRepository;
@@ -48,7 +49,7 @@ public class DoiDataController {
     @CrossOrigin(origins = "http://localhost:9000")
     @PostMapping("/doi-data")
     public ResponseEntity<?> createDoiData(@Valid @RequestBody DoiDataDto doiDataDto) throws DoiDataAlreadyPresentException {
-        // Check if the DoiData is already present in the repository
+        // Check whether DoiData is already present in the repository
         if (doiDataRepository.findByRequest(doiDataDto.getRequestID()).size() > 0) {
             throw new DoiDataAlreadyPresentException(doiDataDto.getRequestID());
         }
@@ -57,79 +58,38 @@ public class DoiDataController {
 
         // Create data entity and add it to local database
         DoiData doiData = new DoiData(doiDataDto.getRequestID(), doiDataDto.getPublicationReference(), key.serialise(), UUID.randomUUID().toString());
-
+        long doiDataID = doiDataRepository.save(doiData).getId();
         // Create and send the BeamTask to the proxy server
-        BeamTask task = createBeamTask(doiData);
-        // Add data entity to local database
-        DoiData savedDoiData = doiDataRepository.save(doiData);
-        long doiDataID = savedDoiData.getId();
-        ResponseEntity<JSONObject> responseEntity = sendBeamTask(task);
+        BeamTask task = BeamTaskHelper.createBeamTask(doiData);
+        ResponseEntity<JSONObject> responseEntity = BeamTaskHelper.sendBeamTask(task);
 
-        if (responseEntity.getStatusCode().value() == 201) {
-            CompletableFuture<Integer> resultFuture = new CompletableFuture<>();
-            ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), status -> resultFuture.complete(status.value()));
-            poller.start();
-            try {
-                Integer statusCode = resultFuture.get(); // Block and wait for the result
-                if (statusCode.equals(HttpStatus.OK.value())) {
-                    doiDataService.deleteDoiDataById(doiDataID);
-                    return new ResponseEntity<>(statusCode, HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        if (responseEntity.getStatusCode().equals(HttpStatus.CREATED)) {
+            return pollForTaskResults(doiDataID, task);
         } else {
+            // doiDataRepository.deleteById(doiDataID);
             doiDataService.deleteDoiDataById(doiDataID);
             return responseEntity;
         }
     }
 
-    private BeamTask createBeamTask(DoiData dataWithDoi) {
-        BeamTask task = new BeamTask();
-        task.setId(UUID.fromString(dataWithDoi.getAccessCode()));
-        task.setFrom(System.getenv("FEEDBACK_HUB_BEAM_ID"));
-
-        LinkedList<String> toList = new LinkedList<>();
-        String agentBeamIds = System.getenv("FEEDBACK_AGENT_BEAM_IDS");
-
-        // Parse the array
-        ObjectMapper objectMapper = new ObjectMapper();
+    private ResponseEntity<Object> pollForTaskResults(long doiDataID, BeamTask task) {
+        CompletableFuture<HttpStatus> resultFuture = new CompletableFuture<>();
+        ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), status -> resultFuture.complete(status));
+        poller.start();
         try {
-            String[] arrayValues = objectMapper.readValue(agentBeamIds, String[].class);
-            Collections.addAll(toList, arrayValues);
-        } catch (Exception e) {
+            HttpStatus statusCode = resultFuture.get(); // Block and wait for the result
+            if (statusCode.equals(HttpStatus.OK)) {
+                doiDataService.deleteDoiDataById(doiDataID);
+                return new ResponseEntity<>(statusCode);
+            } else {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        task.setTo(toList);
-
-        JSONObject bodyJson = new JSONObject();
-        bodyJson.put("key", dataWithDoi.getSymEncKey());
-        bodyJson.put("requestId", dataWithDoi.getRequestID());
-        bodyJson.put("accessCode", dataWithDoi.getAccessCode());
-        task.setBody(bodyJson.toString());
-
-        task.setBackoffMillisecs(Integer.parseInt(System.getenv("PROXY_TASK_BACKOFF_MS")));
-        task.setMaxTries(Integer.parseInt(System.getenv("PROXY_TASK_MAX_TRIES")));
-        task.setTtl(System.getenv("PROXY_TASK_TTL"));
-        task.setMetadata(null);
-        return task;
     }
 
-    private ResponseEntity<JSONObject> sendBeamTask(BeamTask task) {
-        final String requestUri = System.getenv("BEAM_PROXY_URI") + "/v1/tasks";
-        String beamId = System.getenv("FEEDBACK_HUB_BEAM_ID");
-        String authorizationHeader = "ApiKey " + beamId + " App1Secret";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authorizationHeader);
-        HttpEntity<JSONObject> request = new HttpEntity<>(task.buildJSON(), headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.postForEntity(requestUri, request, JSONObject.class);
-    }
     // Get Doi by request ID
     @GetMapping("/doi-token/{req_id}")
     public String getDoiTokenByRequestID(@PathVariable(value = "req_id") String requestId) throws DoiDataNotFoundException {
