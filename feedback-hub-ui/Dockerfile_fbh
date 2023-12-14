@@ -6,4 +6,4 @@ COPY . .
 
 RUN npm run build
 
-CMD npm run dev
+CMD npm run dev -- --port 8095 --host 0.0.0.0

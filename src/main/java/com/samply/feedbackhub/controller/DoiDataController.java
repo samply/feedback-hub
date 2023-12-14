@@ -29,7 +29,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class DoiDataController {
     @Autowired
     DoiDataRepository doiDataRepository;
@@ -39,14 +38,12 @@ public class DoiDataController {
 
     // Get all DoiData
     // only for testing
-    @CrossOrigin(origins = "http://localhost:9000")
     @GetMapping("/doi-data")
     public List<DoiData> getAllDoiData() {
         return doiDataRepository.findAll();
     }
 
     // Create a new DoiData
-    @CrossOrigin(origins = "http://localhost:9000")
     @PostMapping("/doi-data")
     public ResponseEntity<?> createDoiData(@Valid @RequestBody DoiDataDto doiDataDto) throws DoiDataAlreadyPresentException {
         // Check whether DoiData is already present in the repository
@@ -66,12 +63,11 @@ public class DoiDataController {
         if (responseEntity.getStatusCode().equals(HttpStatus.CREATED)) {
             return pollForTaskResults(doiDataID, task);
         } else {
-            // doiDataRepository.deleteById(doiDataID);
             doiDataService.deleteDoiDataById(doiDataID);
             return responseEntity;
         }
     }
-
+    // Creates a poller and awaits for results from all agent proxies
     private ResponseEntity<Object> pollForTaskResults(long doiDataID, BeamTask task) {
         CompletableFuture<HttpStatus> resultFuture = new CompletableFuture<>();
         ProxyResultPoller poller = new ProxyResultPoller(task.getId(), Integer.parseInt(System.getenv("FEEDBACK_AGENTS_COUNT")), status -> resultFuture.complete(status));
@@ -90,7 +86,7 @@ public class DoiDataController {
         }
     }
 
-    // Get Doi by request ID
+    // Get Doi by request ID (testing only)
     @GetMapping("/doi-token/{req_id}")
     public String getDoiTokenByRequestID(@PathVariable(value = "req_id") String requestId) throws DoiDataNotFoundException {
         List<DoiData> data = doiDataRepository.findByRequest(requestId);

@@ -45,17 +45,17 @@ export default {
     return {
         publication: "",
         requestID : "",
-        //x_api_key: 'ttsHGwSITs0Eq8L63YWtLVyHymBmULvZIihL6w4t42FBmzp6Eb9SGNd7fZmeUtAI',
         enableSuccessAlert: false,
         enableDangerAlert: false,
-        backendUri: "http://localhost:8071",
         postPath: "/doi-data"
     }
   },
   methods: {
     postData() {
+      this.enableSuccessAlert = false;
+      this.enableDangerAlert = false;
       console.log("sending data");
-      axios.post(this.backendUri + this.postPath, { "requestID" : this.requestID, "publicationReference" : this.publication } )
+      axios.post(import.meta.env.VITE_BACKEND_URI + this.postPath, { "requestID" : this.requestID, "publicationReference" : this.publication } )
       .then(response => {
         console.log(response);
         if (response.status == 200) {
