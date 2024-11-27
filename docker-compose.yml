@@ -2,9 +2,7 @@ version: '2'
 
 services:
   feedback-hub-be:
-    image: 'feedback-hub:latest'
-    build:
-      context: ./target
+    image: 'samply/feedback-hub:latest'
     container_name: feedback-hub-be
     expose:
       - 8071
@@ -43,9 +41,7 @@ services:
       - negotiator
 
   feedback-hub-ui:
-    build:
-      context: ./feedback-hub-ui
-      dockerfile: Dockerfile_fbh
+    image: 'samply/feedback-hub-ui:latest'
     environment:
       - BACKEND_URI=http://feedback-hub-be:8071
     ports:
