@@ -34,7 +34,6 @@ public class DoiData {
         this.symEncKey = symEncKey;
         this.publicationReferenceToken = Token.generate(new Key(symEncKey), publicationReference).serialise();
         this.accessCode = accessCode;
-        //this.setPublicationReferenceToken(symEncKey, publicationReference);
     }
 
     public long getId() {
@@ -62,10 +61,6 @@ public class DoiData {
 
     public String getSymEncKey() {
         return symEncKey;
-    }
-
-    public void setSymEncKey(String encryptionToken) {
-        this.symEncKey = encryptionToken;
     }
 
     public String getAccessCode() {

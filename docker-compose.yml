@@ -1,4 +1,16 @@
-version: '2'
+version: '3.7'
+
+secrets:
+  proxy.pem:
+    file: ./pki/bbmri.priv.pem
+
+# Only needed if you are running both hub and agent together on a
+# test machine.
+networks:
+  default:
+  feedback:
+      external:
+         name: feedback
 
 services:
   feedback-hub-be:
@@ -8,6 +20,7 @@ services:
       - 8071
     ports:
       - 8071:8071
+      - 5006:5005
     depends_on:
       - feedback-hub-db
     environment:
@@ -15,30 +28,32 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - BEAM_PROXY_URI=http://dev-proxy1-1:8081
+      #- BEAM_PROXY_URI=http://dev-proxy1-1:8081
+      - BEAM_PROXY_URI=http://beam-proxy:8081
       - PROXY_TASK_BACKOFF_MS=1000
       - PROXY_TASK_MAX_TRIES=5
-      - PROXY_TASK_TTL=30s
-      - FEEDBACK_HUB_BEAM_ID=app1.proxy1.broker
+      #- PROXY_TASK_TTL=30s
+      - PROXY_TASK_TTL=600s
+      #- FEEDBACK_HUB_BEAM_ID=app1.proxy1.broker
+      #- FEEDBACK_AGENTS_COUNT=1
+      #- FEEDBACK_AGENT_BEAM_IDS=["app1.proxy2.broker"]
+      - FEEDBACK_HUB_BEAM_ID=feedback-hub.feedback-central.broker-test.bbmri-test.samply.de
       - FEEDBACK_AGENTS_COUNT=1
-      - FEEDBACK_AGENT_BEAM_IDS=["app1.proxy2.broker"]
-      - APP1_SECRET=App1Secret
+      - FEEDBACK_AGENT_BEAM_IDS=["feedback-agent.feedback-site1.broker-test.bbmri-test.samply.de"]
+      - FEEDBACK_HUB_SECRET=App1Secret
+    # Needed for testing
     networks:
-      - negotiator
-      - outer
+      - feedback
+      - default
           
   feedback-hub-db:
     image: 'postgres:13.1-alpine'
     container_name: feedback-hub-db
     expose:
       - 5432
-    #ports:
-    #  - 5432:5432
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
-    networks:
-      - negotiator
 
   feedback-hub-ui:
     image: 'samply/feedback-hub-ui:latest'
@@ -46,11 +61,26 @@ services:
       - BACKEND_URI=http://feedback-hub-be:8071
     ports:
       - "8095:8095"
-    networks:
-      - outer
-      
-networks:
-  negotiator:
-    name: "negotiator"
-  outer:
-    name: "outer"
+
+  beam-proxy:
+    image: docker.verbis.dkfz.de/cache/samply/beam-proxy:develop
+    #image: samply/beam-proxy:nightly
+    #image: samply/beam-proxy:main
+    container_name: beam-proxy
+    environment:
+      RUST_LOG: debug
+      BROKER_URL: https://broker-test.bbmri-test.samply.de
+      PROXY_ID: feedback-central.broker-test.bbmri-test.samply.de
+      PRIVKEY_FILE: /run/secrets/proxy.pem
+      TLS_CA_CERTIFICATES_DIR: /conf/trusted-ca-certs
+      ROOTCERT_FILE: /conf/root.crt.pem
+      APP_feedback-hub_KEY: App1Secret
+    secrets:
+      - proxy.pem
+    volumes:
+      - ./trusted-ca-certs:/conf/trusted-ca-certs:ro
+      #- ./eric.root.crt.pem:/conf/root.crt.pem:ro
+      - ./eric.test.root.crt.pem:/conf/root.crt.pem:ro
+      #- ./pki/bbmri.priv.pem:/run/secrets/proxy.pem
+#    ports:
+#      - 8081:8081
