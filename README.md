@@ -18,23 +18,23 @@ You need to create the directory "trusted-ca-certs" if not already present.
 
 You need to copy over eric.root.crt.pem from a Bridgehead (it is publicly available in the bridgehead GitHub repo).
 
-Build the feedback hub UI:
-``` code
-cd ..
-git clone https://github.com/samply/feedback-hub-ui.git
-cd feedback-hub-ui
-docker build -t samply/feedback-hub-ui .
-``` 
+Build the feedback hub UI (more details [here](https://github.com/samply/feedback-hub-ui)).
 
 ## Building for production
+If you want to run the feedback hub UI centrally together with the [feedback hub UI](https://github.com/samply/feedback-hub-ui),
+you will need to clone the repository and build the container:
 ``` code
+git clone https://github.com/samply/feedback-hub.git
+cd feedback-hub
 mvn clean install
 docker build -t samply/feedback-agent .
 ```
 
-## Running
+## Running for production
 The ```docker-compose.yml``` file can be used to run the feedback hub. This file will run both the backend and the UI.
 ``` code
 docker compose up -d
 ```
+
+You will find the UI at http://localhost:8095/ on the production machine.
 
