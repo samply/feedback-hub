@@ -8,7 +8,10 @@ it. The feedback agents (at biobank sites) that are permitted to collect tasks n
 to be specified via an environment variable. Once all feedback agents have collected the
 task, it will be removed.
 
-## Prerequisites
+## Building for production
+This repository contains a ```docker-compose.yml``` file that can be used to run a fully-operational central feedback hub. It starts containers for the docker hub backend and its associated database, plus the docker hub UI. However, before starting it, a number of prerequisites need to be met.
+
+### Prerequisites
 
 In the docker-compose.yml file, there are a number of things that need to be generated first, before running it.
 
@@ -20,7 +23,7 @@ You need to copy over eric.root.crt.pem from a Bridgehead (it is publicly availa
 
 Build the feedback hub UI (more details [here](https://github.com/samply/feedback-hub-ui)).
 
-## Building for production
+### Building
 If you want to run the feedback hub UI centrally together with the [feedback hub UI](https://github.com/samply/feedback-hub-ui),
 you will need to clone the repository and build the container:
 ``` code
@@ -28,6 +31,7 @@ git clone https://github.com/samply/feedback-hub.git
 cd feedback-hub
 mvn clean install
 docker build -t samply/feedback-agent .
+docker-compose up -d
 ```
 
 ## Running for production
