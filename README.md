@@ -24,8 +24,7 @@ You need to copy over eric.root.crt.pem from a Bridgehead (it is publicly availa
 Build the feedback hub UI (more details [here](https://github.com/samply/feedback-hub-ui)).
 
 ### Building
-If you want to run the feedback hub UI centrally together with the [feedback hub UI](https://github.com/samply/feedback-hub-ui),
-you will need to clone the repository and build the container:
+Build the feedback hub backend and start the central feedback hub containers:
 ``` code
 git clone https://github.com/samply/feedback-hub.git
 cd feedback-hub
